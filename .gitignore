@@ -1,0 +1,9 @@
+.idea
+*.log
+*.pot
+*.pyc
+/db.sqlite3
+/env
+/Lib
+/Scripts
+pyvenv.cfg
