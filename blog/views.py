@@ -3,7 +3,7 @@ from django.views.generic import ListView
 from django.core.mail import send_mail
 from django.views.decorators.http import require_POST
 
-from .models import Post, Comment
+from .models import Post
 from .forms import EmailPostForm, CommentForm
 
 
