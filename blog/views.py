@@ -1,8 +1,9 @@
 from django.shortcuts import render, get_object_or_404
-from django.views.generic import ListView
 from django.core.mail import send_mail
-from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.db.models import Count
+from django.views.decorators.http import require_POST
+# from django.views.generic import ListView
 
 from taggit.models import Tag
 from .models import Post
@@ -28,6 +29,7 @@ def post_list(request, tag_slug=None):
     # Pagination with 3 posts per page
     paginator = Paginator(list_of_posts, 3)
     page_number = request.GET.get('page', 1)
+
     try:
         posts = paginator.page(page_number)
     except PageNotAnInteger:
@@ -37,6 +39,7 @@ def post_list(request, tag_slug=None):
         # If page_number is out of range deliver last page of results
         posts = paginator.page(paginator.num_pages)
     context = {'posts': posts, 'tag': tag}
+
     return render(request, 'blog/post/list.html', context)
 
 
@@ -51,7 +54,13 @@ def post_detail(request, year, month, day, post):
     comments = post.comments.filter(active=True)
     # Form for users comment
     form = CommentForm()
-    context = {'post': post, 'comments': comments, 'form': form}
+
+    # List of similar posts
+    post_tags_ids = post.tags.values_list('id', flat=True)
+    similar_post = Post.published.filter(tags__in=post_tags_ids).exclude(pk=post.pk)
+    similar_post = similar_post.annotate(same_tags=Count('tags')).order_by('-same_tags', '-publish')[0:4]
+
+    context = {'post': post, 'comments': comments, 'form': form, 'similar_post': similar_post}
     return render(request, 'blog/post/detail.html', context)
 
 
